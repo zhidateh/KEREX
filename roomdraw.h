@@ -40,17 +40,19 @@ private slots:
     void on_btn_block_clicked();
 
 
+    void on_axisSlider_sliderMoved(int position);
+
 private:
     Ui::RoomDraw *ui;
 
     QString path;
 
-    bool isSaved = false;
+    bool isSaved = true;
     double international_percent = 50.0;
 
 
-    QMap<QString,ResidentData*> mapResidentData;
-    QMap<QString,Room*> mapRoomData;
+    QMap<QString,ResidentData*> mapResidentData; //key: matric number (uppersized)
+    QMap<QString,Room*> mapRoomData; //key: room number, e.g. A101
 
     BlockData blockData;
 
@@ -66,6 +68,7 @@ private:
 
     QStringList occupiedRooms;
 
+    int size_incre = 0;
 
     void readCSV();
     void readFloorplan();

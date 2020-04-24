@@ -448,7 +448,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Max number of Senior:</string>
+          <string>Max Senior:</string>
          </property>
         </widget>
         <widget class="QLabel" name="txt_senior_ab">
@@ -923,7 +923,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Max number of Senior:</string>
+          <string>Max Senior:</string>
          </property>
         </widget>
         <widget class="QLabel" name="txt_senior_cd">
@@ -1398,7 +1398,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Max number of Senior:</string>
+          <string>Max Senior:</string>
          </property>
         </widget>
         <widget class="QLabel" name="txt_senior_e">
@@ -1873,7 +1873,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Max number of Senior:</string>
+          <string>Max Senior:</string>
          </property>
         </widget>
         <widget class="QLabel" name="txt_senior_f">
@@ -2348,7 +2348,7 @@
           </rect>
          </property>
          <property name="text">
-          <string>Max number of Senior:</string>
+          <string>Max Senior:</string>
          </property>
         </widget>
         <widget class="QLabel" name="txt_senior_gh">
@@ -2402,7 +2402,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

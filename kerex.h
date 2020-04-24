@@ -13,16 +13,8 @@
 
 #include "dirent.h"
 #include "roomdraw.h"
+#include "keips.h"
 #include "struct.h"
-
-//struct ResidentData{
-//    QString block;
-//    QString room;
-//    QString gender;
-//    QString name;
-//    QString matric;
-//    QString nationality;
-//};
 
 
 
@@ -48,6 +40,8 @@ private slots:
 
     void on_txt_search_textChanged(const QString &arg1);
 
+    void on_btn_keips_clicked();
+
 private:
     Ui::KEREX *ui;
     void readTxt(QString file_dir,QString file_basename);
@@ -56,7 +50,6 @@ private:
     void readCSV();
 
     QMap<QString,ResidentData*> mapResidentData;
-
 
 };
 

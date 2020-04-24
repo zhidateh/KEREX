@@ -12,8 +12,6 @@ RoomDraw::RoomDraw(QWidget *parent) :
     ui->roomPlot->yAxis->setVisible(false);
     ui->roomPlot->xAxis->setRange(-5,31);
     ui->roomPlot->yAxis->setRange(-5,65);
-
-
 }
 
 RoomDraw::~RoomDraw()
@@ -31,6 +29,7 @@ void RoomDraw::closeEvent(QCloseEvent *event) {
             event->ignore();
         }
     }
+    return;
 
 }
 
@@ -120,9 +119,7 @@ void RoomDraw::readCSV()
         }
 
         mapRoomData[number] = room;
-
     }
-
 }
 
 void RoomDraw::readFloorplan()
@@ -133,6 +130,7 @@ void RoomDraw::readFloorplan()
         return;
     }
     QTextStream in(&file);
+
 
     bool isFirstRow = true;
     while(!in.atEnd()) {
@@ -154,7 +152,7 @@ void RoomDraw::readFloorplan()
         QCPItemText *textLabel1 = new QCPItemText(ui->roomPlot);
         textLabel1->position->setCoords( coord_x,coord_y);
         textLabel1->setText("                          \n                          ");
-        textLabel1->setFont(QFont(font().family(), 12)); // make font a bit larger
+        textLabel1->setFont(QFont(font().family(), 12 + size_incre*1.5)); // make font a bit larger
         textLabel1->setColor(Qt::black);
         textLabel1->setPen(Qt::SolidLine);
 
@@ -179,7 +177,7 @@ void RoomDraw::readFloorplan()
         textLabel2->position->setCoords( coord_x-1, coord_y+2);
         textLabel2->setText(title);
         textLabel2->setPositionAlignment(Qt::AlignLeft|Qt::AlignTop);
-        textLabel2->setFont(QFont(font().family(), 7, QFont::Bold)); // make font a bit larger
+        textLabel2->setFont(QFont(font().family(), 7 + size_incre, QFont::Bold)); // make font a bit larger
         textLabel2->setColor(Qt::black);
 
     }
@@ -242,6 +240,7 @@ void RoomDraw::readFloorplan()
 }
 
 //initialise block data: number of single room, number of double room, number of room per floor
+// one time run
 void RoomDraw::setBlockData()
 {
     QMapIterator<QString,Room*> iterator(mapRoomData);
@@ -250,7 +249,7 @@ void RoomDraw::setBlockData()
         if(iterator.value()->matric == "NIL") continue;
 
         QString cluster = mapCluster(iterator.key());
-        QString floor = iterator.key().left(2);
+        QString floor = iterator.key().left(2); //A1, A2, ...
 
         mapBlockData[cluster].mapFloor[floor].nBed++;
         mapBlockData[cluster].nTotal++;
@@ -259,14 +258,12 @@ void RoomDraw::setBlockData()
         if(iterator.key().length() == 6 && iterator.value()->gender =="MALE") mapBlockData[cluster].nDMTotal++;
         if(iterator.key().length() == 4 && iterator.value()->gender =="FEMALE") mapBlockData[cluster].nSFTotal++;
         if(iterator.key().length() == 6 && iterator.value()->gender =="FEMALE") mapBlockData[cluster].nDFTotal++;
-
-
     }
 
 }
 
-
-//update room data in UI
+//update room data in main UI
+//one time run
 void RoomDraw::updateRoomInfo()
 {
     int nSingleMale =   mapBlockData["AB"].nSMTotal +
@@ -322,10 +319,9 @@ void RoomDraw::updateRoomInfo()
 
 }
 
+
 void RoomDraw::updateAll()
 {
-    isSaved = false;
-
     updateOccupiedRoom();
 
     updateNationality();
@@ -336,7 +332,8 @@ void RoomDraw::updateAll()
 
 
 
-//store occupied room in mapOccupiedRoom (cross checking the matric number from resident data)
+//store occupied room in occupiedRooms (cross checking the matric number from resident data)
+//store room of each individual in mapResidentData
 void RoomDraw::updateOccupiedRoom()
 {
     QMapIterator<QString,Room*> iterator(mapRoomData);
@@ -350,7 +347,6 @@ void RoomDraw::updateOccupiedRoom()
 
         if(mapResidentData.contains(matric) || matric == "NIL"){
             occupiedRooms << number;
-            if (matric != "NIL") mapResidentData[matric]->room = number;
         }
         else{
             msg_error << number + " with matric: " + matric + ", not found in resident data.";
@@ -360,6 +356,7 @@ void RoomDraw::updateOccupiedRoom()
 }
 
 //store all nationalities per floor in mapNationalityPerFloor with floor as key
+//calculate nationality with mapRoomData's matric
 void RoomDraw::updateNationality()
 {
     for(QString number:occupiedRooms){
@@ -367,9 +364,10 @@ void RoomDraw::updateNationality()
 
         QString floor = number.left(2);
         QString cluster = mapCluster(number);
+        QString nationality = mapResidentData[mapRoomData[number]->matric]->nationality;
 
+        mapBlockData[cluster].mapFloor[floor].mapNationality[nationality]++;
 
-        //mapBlockData[cluster].mapFloor[floor].nationalities.append(mapResidentData[mapRoomData[number]->matric]->nationality);
         mapBlockData[cluster].mapFloor[floor].nationalities <<  mapResidentData[mapRoomData[number]->matric]->nationality;
     }
 }
@@ -378,12 +376,13 @@ void RoomDraw::updateNationality()
 void RoomDraw::checkError(){
 
     for(int i =0; i < mapResidentData.keys().length() ;++i){
+
         if(mapResidentData.values().at(i)->room.length() == 0 ){
             msg_error << mapResidentData.values().at(i)->name + ", " + mapResidentData.keys().at(i) + " is not assigned a room yet";
         }
     }
 
-
+    //to be review
     for(int i =0; i < mapResidentData.keys().length() ;++i){
         if(mapResidentData.values().at(i)->room.length() == 6 && mapResidentData.values().at(i)->roomtype == "SINGLE" ){
             msg_error << mapResidentData.values().at(i)->name + ", " + mapResidentData.keys().at(i) + " is assigned wrong room type";
@@ -416,45 +415,46 @@ void RoomDraw::checkError(){
 
 void RoomDraw::on_btn_save_clicked()
 {
-    QString save_path = path + QString("/Export/RoomData_%1.csv").arg(QDateTime::currentDateTime().toString("ddMMyyyy-hhmmss"));
+
+    QString save_path = path + QString("/RoomDraw/RoomData.csv");
     QFile file(save_path);
 
-    if (file.open(QIODevice::ReadWrite)) {
+    if (file.open(QIODevice::WriteOnly)) {
         QTextStream stream(&file);
 
-        for(QString number:occupiedRooms){
-            if(mapRoomData[number]->matric == "NIL") continue;
-            stream << number << ',' << mapResidentData[mapRoomData[number]->matric]->name << ","  << mapRoomData[number]->matric << "," << mapResidentData[mapRoomData[number]->matric]->gender << "," << mapResidentData[mapRoomData[number]->matric]->nationality << "\n";
+        stream << "Block,Room No,Gender,Matric No. \n";
+        QMapIterator<QString,Room*> iterator(mapRoomData);
+        while(iterator.hasNext()){
+            iterator.next();
+            QString block = iterator.key().left(1);
+            QString roomnumber = iterator.key();
+            QString gender = iterator.value()->gender;
+            QString matric = iterator.value()->matric;
+
+            stream << block << ',' << roomnumber << ","  << gender << "," << matric << "\n";
         }
-        isSaved = true;
+
+//        for(int i=0;i < mapRoomData.keys().length(); ++i){
+//            stream1 << mapRoomData.keys().at(i).left(1) << "," << mapRoomData.keys().at(i) << "," << mapRoomData.values().at(i)->gender << "," << mapRoomData.values().at(i)->matric << "\n";
+//        }
     }
 
-    QString save_path1 = path + QString("/RoomDraw/RoomData.csv");
-    QFile file1(save_path1);
-    //QFile file(save_path);
 
-    if (file1.open(QIODevice::ReadWrite)) {
-        QTextStream stream1(&file1);
-        stream1 << "Block,Room No, Gender, Matric No.\n";
-        for(int i=0;i < mapRoomData.keys().length(); ++i){
-            stream1 << mapRoomData.keys().at(i).left(1) << "," << mapRoomData.keys().at(i) << "," << mapRoomData.values().at(i)->gender << "," << mapRoomData.values().at(i)->matric << "\n";
-        }
-    }
-
-
+    isSaved = true;
 
 
     QMessageBox msgBox;
     msgBox.setWindowTitle("Information");
-    msgBox.setText(" Successfully saved file as " + save_path );
+    msgBox.setText(" Overwrote file " + save_path );
     msgBox.exec();
 }
 
 
 //total room status, total room left, and nationality && DRAW
+//use mapRoomData to calculate number
+//use mapReisidentData to display name
 void RoomDraw::updateRoomStatus()
 {
-
     for(QString number:occupiedRooms){
         if(mapRoomData[number]->matric == "NIL") continue;
 
@@ -470,7 +470,7 @@ void RoomDraw::updateRoomStatus()
         QCPItemText *textLabel3 = new QCPItemText(ui->roomPlot);
         textLabel3->position->setCoords( mapFloorCoord[number].x, mapFloorCoord[number].y-1);
         textLabel3->setText( mapResidentData[mapRoomData[number]->matric]->name);
-        textLabel3->setFont(QFont(font().family(), 6)); // make font a bit larger
+        textLabel3->setFont(QFont(font().family(), 6 + size_incre)); // make font a bit larger
         textLabel3->setColor(Qt::black);
     }
 
@@ -558,9 +558,8 @@ void RoomDraw::updateRoomStatus()
         }
     }
 
-
+    //find available rooms in block
     QMapIterator<QString, Room*> iterator(mapRoomData);
-
     while(iterator.hasNext()){
         iterator.next();
         QString cluster = mapCluster(iterator.key());
@@ -712,7 +711,6 @@ Coord RoomDraw::makeCoord(int x, int y)
     coord.y = y;
     return coord;
 }
-
 
 void RoomDraw::setRoomCoord()
 {
@@ -1385,7 +1383,25 @@ void RoomDraw::on_btn_add_clicked()
 {
     QString roomnumber      = ui->box_rn->text().toUpper().remove(' ');
     QString matricnumber    = ui->box_mn->text().toUpper().remove(' ');
-    QString cluster         = mapCluster(roomnumber);
+    QString cluster         = "" ;
+    QString floor           = "";
+    QString roomtype        = "";
+    QString gender          = "";
+    QString nationality     = "";
+
+    //find available rooms in block
+    QMapIterator<QString, Room*> iterator(mapRoomData);
+    while(iterator.hasNext()){
+        iterator.next();
+        if(iterator.value()->matric == matricnumber){
+            QMessageBox messageBox;
+            messageBox.setWindowTitle("Error");
+            messageBox.setText("This fella already has a room at " + iterator.key() + "! Please enter the room number with \* in matric number box to remove" );
+            messageBox.exec();
+            return;
+        }
+    }
+
     if(!ui->cb_ignorewarning->isChecked()){
         if(!mapRoomData.contains(roomnumber)){
             QMessageBox messageBox;
@@ -1393,13 +1409,17 @@ void RoomDraw::on_btn_add_clicked()
             messageBox.setText("Are you sure you enter a legit room?");
             messageBox.exec();
             return;
-
         }
-
+        else{
+            if (roomnumber.length() == 4) roomtype = "SINGLE";
+            else if (roomnumber.length() == 6) roomtype = "DOUBLE";
+            floor = roomnumber.left(2);
+            cluster = mapCluster(roomnumber);
+        }
 
         if(matricnumber == "*"){
             QMessageBox::StandardButton reply;
-            reply = QMessageBox::question(this, "Warning", "Are you sure you want to reset?",
+            reply = QMessageBox::question(this, "Warning", "Are you sure you want to remove the existing matric?",
                                           QMessageBox::Yes|QMessageBox::No);
             if (reply == QMessageBox::No) {
                 return;
@@ -1410,7 +1430,7 @@ void RoomDraw::on_btn_add_clicked()
             if(occupiedRooms.contains(roomnumber)){
                 QMessageBox messageBox;
                 messageBox.setWindowTitle("Error");
-                messageBox.setText("Room is occupied!");
+                messageBox.setText("Room is occupied! Use \* in matric number box to remove");
                 messageBox.exec();
                 return;
             }
@@ -1422,6 +1442,10 @@ void RoomDraw::on_btn_add_clicked()
                 messageBox.exec();
                 return;
             }
+            else {
+                gender          = mapResidentData[matricnumber]->gender;
+                nationality     = mapResidentData[matricnumber]->nationality;
+            }
 
             if(mapResidentData[matricnumber]->room.length() != 0){
                 QMessageBox messageBox;
@@ -1429,7 +1453,6 @@ void RoomDraw::on_btn_add_clicked()
                 messageBox.setText("This fella already has a room!");
                 messageBox.exec();
                 return;
-
             }
 
             if(mapRoomData[roomnumber]->gender != mapResidentData[matricnumber]->gender){
@@ -1439,16 +1462,69 @@ void RoomDraw::on_btn_add_clicked()
                 messageBox.exec();
                 return;
             }
+
+            int nationality_percentage = mapBlockData[cluster].mapFloor[floor].mapNationality[nationality]*100/mapBlockData[cluster].mapFloor[floor].nBed;
+            qDebug() << nationality_percentage;
+            if(! (nationality == "SINGAPORE CITIZEN" || nationality == "SPR"))
+            {
+                if (nationality_percentage >= 50 )
+                {
+                    QMessageBox messageBox;
+                    messageBox.setWindowTitle("Error");
+                    messageBox.setText("Reached floor international quota!");
+                    messageBox.exec();
+                    return;
+                }
+
+            }
+
+            if((roomtype == "SINGLE" && gender == "MALE" &&
+                    ( mapBlockData[cluster].nSMTaken +1 > static_cast<int>(mapBlockData[cluster].nSMTotal/2)))
+                || (roomtype == "SINGLE" && gender == "FEMALE" &&
+                    ( mapBlockData[cluster].nSFTaken +1 > static_cast<int>(mapBlockData[cluster].nSFTotal/2)))
+                || (roomtype == "DOUBLE" && gender == "MALE" &&
+                    ( mapBlockData[cluster].nDMTaken +1 > static_cast<int>(mapBlockData[cluster].nDMTotal/2)))
+                || (roomtype == "DOUBLE" && gender == "FEMALE" &&
+                    ( mapBlockData[cluster].nDFTaken +1 > static_cast<int>(mapBlockData[cluster].nDFTotal/2))))
+            {
+                QMessageBox messageBox;
+                messageBox.setWindowTitle("Error");
+                messageBox.setText("Room type senior quota reached for the block! Beyond this warning is related to senior quota, tick the box if you want to ignore the error");
+                messageBox.exec();
+                return;
+            }
+
+            if(mapBlockData[cluster].nCSenior >= mapBlockData[cluster].nSenior)
+            {
+                QMessageBox messageBox;
+                messageBox.setWindowTitle("Error");
+                messageBox.setText("Reached senior quota!");
+                messageBox.exec();
+                return;
+            }
         }
-
-
     }
+
 
     mapRoomData[roomnumber]->matric = matricnumber;
     ui->roomPlot->clearItems();
     refreshAll();
     ui->roomPlot->replot();
+    isSaved = false;
 
+    if(matricnumber == "" )
+    {
+        QMessageBox messageBox;
+        messageBox.setWindowTitle("Info");
+        messageBox.setText("Reset " + roomnumber );
+        messageBox.exec();
+    }
+    else {
+        QMessageBox messageBox;
+        messageBox.setWindowTitle("Info");
+        messageBox.setText("Added " + mapResidentData[matricnumber]->name + " into " + roomnumber );
+        messageBox.exec();
+    }
 }
 
 QString RoomDraw::mapCluster(QString roomnumber)
@@ -1469,3 +1545,22 @@ void RoomDraw::on_btn_block_clicked()
     blockData.show();
 }
 
+
+void RoomDraw::on_axisSlider_sliderMoved(int position)
+{
+    //36,70 .. 18 35
+    double xMid = ui->roomPlot->xAxis->range().center();
+    double yMid = ui->roomPlot->yAxis->range().center();
+
+    size_incre = position;
+
+    ui->roomPlot->xAxis->setRangeLower(xMid - 18*(99-position)/99 );
+    ui->roomPlot->xAxis->setRangeUpper(xMid + 18*(99-position)/99 );
+    ui->roomPlot->yAxis->setRangeLower(yMid - 35*(99-position)/99 );
+    ui->roomPlot->yAxis->setRangeUpper(yMid + 35*(99-position)/99 );
+
+    ui->roomPlot->clearItems();
+    refreshAll();
+    ui->roomPlot->replot();
+
+}

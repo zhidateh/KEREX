@@ -6,6 +6,7 @@
 #include <QMap>
 #include "qcustomplot.h"
 
+//room draw struct
 struct ResidentData{
     QString room;
     QString gender;
@@ -14,6 +15,7 @@ struct ResidentData{
     QString nationality;
     QString roomtype;
     QString yearofstudy;
+    QString intake;
 };
 
 
@@ -27,6 +29,7 @@ struct Floor{
     QString number;
     int nBed;
     QStringList nationalities;
+    QMap<QString, int> mapNationality;
 };
 
 
@@ -60,20 +63,51 @@ struct Block{
 
 
 
+//KEIPS struct
+struct CCATier{
+    QString type;
+    int maxAttendancePoint;
+    int maxVacationPoint;
+    int IHGRegistrationPoint;
+    int maxPerformancePoint;
+    int maxOutstandingPoint;
 
+    int nMember = 0;
+    int percentTier1 =0;
+    int percentTier2 =0;
+    int percentTier3 =0;
+    int nTier1 = 0;
+    int nTier2 = 0;
+    int nTier3 = 0;
+};
 
+struct CCAData{
+    int totalPoint;
+    int verifyAttendancePoint=0;
+    int attendancePoint=0;
+    int vacationPoint=0;
+    int IHGRegistrationPoint=0;
+    int performancePoint=0;
+    int outstandingPoint=0;
+};
 
+struct BonusData{
+    int point=0;
+    QString ccaname;
+};
 
+struct KEIPSSummary{
+    bool isContrast = false;
+    bool fulfilledCriteria = false;
+    int OSApoint;
+    float OSApercentile;
+    int RoomDrawPoint;
 
+    QStringList ccaOSA;
+    QMap<QString,CCAData> mapCCAData;
+    QMap<QString,BonusData> mapBonusData;
 
-
-
-
-
-
-
-
-
+};
 
 
 

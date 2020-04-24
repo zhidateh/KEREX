@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>618</width>
-    <height>499</height>
+    <width>680</width>
+    <height>423</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="btn_roomdraw">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>80</y>
-      <width>75</width>
-      <height>23</height>
+      <x>360</x>
+      <y>320</y>
+      <width>120</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
@@ -30,10 +30,10 @@
    <widget class="QPushButton" name="btn_browse">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>30</y>
-      <width>75</width>
-      <height>23</height>
+      <x>280</x>
+      <y>20</y>
+      <width>120</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
@@ -43,21 +43,47 @@
    <widget class="QLineEdit" name="txt_search">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>40</y>
+      <x>170</x>
+      <y>70</y>
       <width>171</width>
-      <height>22</height>
+      <height>21</height>
      </rect>
     </property>
    </widget>
    <widget class="QTextBrowser" name="txt_searchres">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>90</y>
-      <width>256</width>
+      <x>40</x>
+      <y>100</y>
+      <width>600</width>
       <height>192</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_keips">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>320</y>
+      <width>120</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>KEIPS</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>70</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Search box:</string>
     </property>
    </widget>
   </widget>
@@ -66,8 +92,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>618</width>
-     <height>26</height>
+     <width>680</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

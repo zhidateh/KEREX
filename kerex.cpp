@@ -7,6 +7,7 @@ KEREX::KEREX(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->btn_roomdraw->setEnabled(false);
+    ui->btn_keips->setEnabled(false);
 
 }
 
@@ -22,7 +23,7 @@ KEREX::~KEREX()
 
 void KEREX::readCSV()
 {
-
+    //room draw
     QString csv_path = file_path + "/ResidentData/ResidentData.csv";
     QFile file(csv_path);
     if(!file.open(QIODevice::ReadOnly)) {
@@ -44,16 +45,19 @@ void KEREX::readCSV()
         QString matric        = line_.at(1).toUpper().remove(' ');
 
         residentData->name          = line_.at(0);
+        residentData->nusnet        = line_.at(2).toUpper().remove(' ');
         residentData->gender        = line_.at(3).toUpper().remove(' ');
-        residentData->room          = "-";
+        residentData->room          = "";
         residentData->roomtype      = line_.at(6).toUpper().remove(' ');
         residentData->yearofstudy   = line_.at(7);
+        residentData->intake        = line_.at(8).toUpper().remove(' ');
 
         if(line_.at(5) == "TRUE") residentData->nationality = "SPR";
         else residentData->nationality = line_.at(4);
 
         mapResidentData[matric] = residentData;
     }
+
 
 }
 
@@ -71,12 +75,23 @@ void KEREX::on_btn_browse_clicked()
     if (!dir.exists()){
         QMessageBox msgBox;
         msgBox.setWindowTitle("Error");
-        msgBox.setText("Invalid Path");
+        msgBox.setText("ResidentData directory not found");
         msgBox.exec();
         return;
     }
 
+    QDir kdir(file_path +  "/KEIPS");
+    if (!kdir.exists()){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Error");
+        msgBox.setText("KEIPS directory not found");
+        msgBox.exec();
+        return;
+    }
+
+
     ui->btn_roomdraw->setEnabled(true);
+    ui->btn_keips->setEnabled(true);
 
     readCSV();
 
@@ -87,8 +102,24 @@ void KEREX::on_btn_roomdraw_clicked()
     RoomDraw *roomDraw = new RoomDraw();
     roomDraw->setPath(file_path);
     roomDraw->setResidentData(mapResidentData);
+
     roomDraw->initialise();
+
     roomDraw->showMaximized();
+
+}
+
+
+void KEREX::on_btn_keips_clicked()
+{
+    KEIPS *keips = new KEIPS();
+    keips->setPath(file_path);
+    keips->setResidentData(mapResidentData);
+
+    keips->initialise();
+
+    keips->showMaximized();
+
 }
 
 
@@ -105,3 +136,4 @@ void KEREX::on_txt_search_textChanged(const QString &arg1)
     }
     ui->txt_searchres->setText(search_result);
 }
+
