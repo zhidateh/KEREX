@@ -375,24 +375,6 @@ void RoomDraw::updateNationality()
 
 void RoomDraw::checkError(){
 
-    for(int i =0; i < mapResidentData.keys().length() ;++i){
-
-        if(mapResidentData.values().at(i)->room.length() == 0 ){
-            msg_error << mapResidentData.values().at(i)->name + ", " + mapResidentData.keys().at(i) + " is not assigned a room yet";
-        }
-    }
-
-    //to be review
-    for(int i =0; i < mapResidentData.keys().length() ;++i){
-        if(mapResidentData.values().at(i)->room.length() == 6 && mapResidentData.values().at(i)->roomtype == "SINGLE" ){
-            msg_error << mapResidentData.values().at(i)->name + ", " + mapResidentData.keys().at(i) + " is assigned wrong room type";
-        }
-        else if(mapResidentData.values().at(i)->room.length() == 4 && mapResidentData.values().at(i)->roomtype == "DOUBLE" ){
-            msg_error << mapResidentData.values().at(i)->name + ", " + mapResidentData.keys().at(i) + " is assigned wrong room type";
-        }
-
-    }
-
     if (mapBlockData["AB"].nCSenior > mapBlockData["AB"].nSenior){
         msg_error << "Block AB has exceed block senior quota";
     }
@@ -408,8 +390,6 @@ void RoomDraw::checkError(){
     if (mapBlockData["GH"].nCSenior > mapBlockData["GH"].nSenior){
         msg_error << "Block GH has exceed block senior quota";
     }
-
-
 
 }
 
@@ -1389,19 +1369,6 @@ void RoomDraw::on_btn_add_clicked()
     QString gender          = "";
     QString nationality     = "";
 
-    //find available rooms in block
-    QMapIterator<QString, Room*> iterator(mapRoomData);
-    while(iterator.hasNext()){
-        iterator.next();
-        if(iterator.value()->matric == matricnumber){
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("Error");
-            messageBox.setText("This fella already has a room at " + iterator.key() + "! Please enter the room number with \* in matric number box to remove" );
-            messageBox.exec();
-            return;
-        }
-    }
-
     if(!ui->cb_ignorewarning->isChecked()){
         if(!mapRoomData.contains(roomnumber)){
             QMessageBox messageBox;
@@ -1447,12 +1414,25 @@ void RoomDraw::on_btn_add_clicked()
                 nationality     = mapResidentData[matricnumber]->nationality;
             }
 
-            if(mapResidentData[matricnumber]->room.length() != 0){
-                QMessageBox messageBox;
-                messageBox.setWindowTitle("Error");
-                messageBox.setText("This fella already has a room!");
-                messageBox.exec();
-                return;
+//            if(mapResidentData[matricnumber]->room.length() != 0){
+//                QMessageBox messageBox;
+//                messageBox.setWindowTitle("Error");
+//                messageBox.setText("This fella already has a room!");
+//                messageBox.exec();
+//                return;
+//            }
+
+            //find available rooms in block
+            QMapIterator<QString, Room*> iterator(mapRoomData);
+            while(iterator.hasNext()){
+                iterator.next();
+                if(iterator.value()->matric == matricnumber){
+                    QMessageBox messageBox;
+                    messageBox.setWindowTitle("Error");
+                    messageBox.setText("This fella already has a room at " + iterator.key() + "! Please enter the room number with \* in matric number box to remove" );
+                    messageBox.exec();
+                    return;
+                }
             }
 
             if(mapRoomData[roomnumber]->gender != mapResidentData[matricnumber]->gender){
